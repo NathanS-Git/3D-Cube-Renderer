@@ -1,5 +1,5 @@
 use nannou::prelude::{App, Frame, Draw, WHITE, BLACK, pt2, map_range};
-use ndarray::{arr0, Array2, Axis, s};
+use ndarray::prelude::*;
 
 fn main() {
     nannou::sketch(view).run();
@@ -8,12 +8,12 @@ fn main() {
 fn generate_hypercube_vertices() -> Array2<f32> {
     const DIM: usize = 3;
 
-    let mut vertices: Array2<f32> = Array2::zeros(((1 << DIM), DIM));
+    let mut vertices: Array2<f32> = Array2::zeros((DIM, (1 << DIM)));
 
     // Generate the vertices of the hypercube
     for i in 0..DIM { 
         for j in 0..(1 << DIM) {
-            vertices[[j,i]] = if (j % (1 << (i+1))) >= (1 << i) { -0.5 } else { 0.5 };
+            vertices[[i,j]] = if (j % (1 << (i+1))) >= (1 << i) { -0.5 } else { 0.5 };
         }
     }
 
@@ -56,7 +56,6 @@ fn generate_hypercube_vertices() -> Array2<f32> {
     14: 1 0 1 1
     15: 0 1 1 1
     16: 1 1 1 1
-
 
     1 -> (2, 3, 5, 9)
     2 -> (1, 4, 6, 10)
@@ -109,14 +108,18 @@ fn construct_rotation_matrix() -> Array2<f32> {
     }
 
     println!("{:?}", rotation_matrix);
-    return rotation_matrix;
+    return rotation_matrix; 
 }
 
 fn view(app: &App, frame: Frame) {
 
 
     let vertices: Array2<f32> = generate_hypercube_vertices();
-    let rotation_matrix: Array2<f32> = construct_rotation_matrix();
+    let rotation_matrix_1: Array2<f32> = array![[1.0, 0.0, 0.0], [0.0, f32::cos(app.time), -f32::sin(app.time)], [0.0, f32::sin(app.time), f32::cos(app.time)]];
+    let rotation_matrix_2: Array2<f32> = array![[f32::cos(app.time), 0.0, f32::sin(app.time)], [0.0, 1.0, 0.0], [-f32::sin(app.time), 0.0, f32::cos(app.time)]];
+    let rotation_matrix_3: Array2<f32> = array![[f32::cos(app.time), -f32::sin(app.time), 0.0], [f32::sin(app.time), f32::cos(app.time), 0.0], [0.0, 0.0, 1.0]];
+
+    let rotation_matrix = rotation_matrix_1.dot(&rotation_matrix_2).dot(&rotation_matrix_3);
 
     let draw = app.draw();
 
@@ -126,18 +129,17 @@ fn view(app: &App, frame: Frame) {
 
     //let sine = app.time.sin();
 
-    // Draw the wire-frame of the hypercube
-    
+    let vertices = rotation_matrix.dot(&vertices);
 
     let boundary = app.window_rect();
 
     const DIM: usize = 3;
     for i in 0..(1 << DIM) {
         for j in 0..DIM {
-            let x_1 = map_range(vertices[[i,0]], -1.0, 1.0, boundary.left(), boundary.right());
-            let x_2 = map_range(vertices[[i ^ (1 << j),0]], -1.0, 1.0, boundary.left(), boundary.right());
-            let y_1 = map_range(vertices[[i,1]], -1.0, 1.0, boundary.bottom(), boundary.top());
-            let y_2 = map_range(vertices[[i ^ (1 << j),1]], -1.0, 1.0, boundary.bottom(), boundary.top());
+            let x_1 = map_range(vertices[[0, i]], -1.0, 1.0, boundary.left(), boundary.right());
+            let x_2 = map_range(vertices[[0, i ^ (1 << j)]], -1.0, 1.0, boundary.left(), boundary.right());
+            let y_1 = map_range(vertices[[1, i]], -1.0, 1.0, boundary.bottom(), boundary.top());
+            let y_2 = map_range(vertices[[1, i ^ (1 << j)]], -1.0, 1.0, boundary.bottom(), boundary.top());
             draw.line()
                 .start(pt2(x_1, y_1))
                 .end(pt2(x_2, y_2))

@@ -1,4 +1,5 @@
 docs/*.mkv
+*.lock
 *.webm
 *.kra*
 *.txt
