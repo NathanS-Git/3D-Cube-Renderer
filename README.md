@@ -1,22 +1,33 @@
-# 3D Cube Renderer
+# Hypercube renderer
 
-A simple renderer for a 3D cube using rotation matrices in numpy.
+This renders an n-dimensional [hypercube](https://en.wikipedia.org/wiki/Hypercube) and rotates it about all of its planes of rotations.
 
-## Example
+## Examples
 
-Cube rendered with faces.
+A simple 3D cube perspective projected.
 
-![Gif of cube with faces rotating](docs/faces.gif)
+![A wireframe cube rotating](docs/3D.gif)
 
-Cube rendered where each vertex is a dot.
+4D Hypercube (Tesseract) Perspective projected
 
-![Gif of cube made of dots rotating](docs/dots.gif)
+![4D hypercube rotating about all of its axis](docs/4D_pp.gif)
 
-Wireframe version of the cube rendered.
+4D Hypercube (Tesseract) Orthographically projected
 
-![Gif of wireframe cube rotating](docs/output.gif)
+![4D hypercube rotating about all of its axis](docs/4D_op.gif)
 
-Irregular movement. Normal vector on front face is visible. This is with zero drag.
+5D Hypercube (Penteract) Perspective projected 
 
-![Gif of wireframe cube rotating](docs/output1.gif)
+![5D hypercube rotating about all of its axis](docs/5D.gif)
 
+6D Hypercube (Hexeract) Perspective projected
+
+![6D hypercube rotating about all of its axis](docs/6D.gif)
+
+And last but not least, just for some fun, a rendering of a 10D Hypercube (in perspective projection).
+
+![4D hypercube rotating about all of its axis](docs/10D.gif)
+
+## Dependencies
+- nannou
+- ndarray

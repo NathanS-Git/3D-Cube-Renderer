@@ -1,1 +1,9 @@
 docs/*.mkv
+*.lock
+*.webm
+*.kra*
+*.txt
+
+# Added by cargo
+
+/target
