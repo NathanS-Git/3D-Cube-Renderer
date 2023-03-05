@@ -1,11 +1,10 @@
-use nannou::winit::platform::unix::x11::ffi::Depth;
 use nannou::{App, Frame};
 use nannou::geom::pt2;
 use nannou::math::map_range;
 use nannou::color::{WHITE, BLACK};
 use ndarray::prelude::*;
 
-const DIM: usize = 4;
+const DIM: usize = 10;
 
 fn main() {
     nannou::sketch(view).run();
@@ -32,15 +31,11 @@ fn construct_rotation_matrix(axis_1: usize, axis_2: usize, angle: f32) -> Array2
         }
     }
 
-    // Make rotations occur in different directions
-    if axis_2 % 2 == 0 {
-        rotation_matrix[[axis_1,axis_2]] = f32::sin(angle);
-        rotation_matrix[[axis_2,axis_1]] = -f32::sin(angle);
-    } else {
-        rotation_matrix[[axis_1,axis_2]] = -f32::sin(angle);
-        rotation_matrix[[axis_2,axis_1]] = f32::sin(angle);
-    }
-
+    // Make the rotation flip every other time
+    let angle = if axis_1 % 2 == 0 { angle } else { -angle };
+    
+    rotation_matrix[[axis_1,axis_2]] = f32::sin(angle);
+    rotation_matrix[[axis_2,axis_1]] = -f32::sin(angle);
     rotation_matrix[[axis_1,axis_1]] = f32::cos(angle);
     rotation_matrix[[axis_2,axis_2]] = f32::cos(angle);
 
@@ -50,41 +45,49 @@ fn construct_rotation_matrix(axis_1: usize, axis_2: usize, angle: f32) -> Array2
 fn view(app: &App, frame: Frame) {
 
     let vertices: Array2<f32> = generate_hypercube_vertices();
-    
-    let mut rotation_matrix = Array2::zeros((DIM, DIM));
 
+    // Initialize the rotation matrix to the identity matrix
+    let mut rotation_matrix = Array2::zeros((DIM, DIM));
     for i in 0..DIM {
         for j in 0..DIM {
             rotation_matrix[[i,j]] = if i == j { 1.0 } else { 0.0 };
         }
     }
     
-    let time = app.time*0.3;
+    let time = app.time*0.5;
     for i in 0..DIM {
         for j in (i+1)..DIM {
             rotation_matrix = rotation_matrix.dot(&construct_rotation_matrix(i, j, time));
         }
     }
 
+    // Rotate the hypercube
     let vertices = rotation_matrix.dot(&vertices);
-    let draw = app.draw();
 
+    // Draw the hypercube 
+    let draw = app.draw();
     draw.background().color(WHITE);
 
-    let vertices = rotation_matrix.dot(&vertices);
+    // Perspective or Orthographic projection
+    let perspective_project = true;
+    if perspective_project {
+        assert!(DIM >= 3, "Perspective projection only works in +3 dimensions");
+    }
 
-    let z_depth = 1.5;
+    let z_depth = if perspective_project { 1.5 } else { 1.0 };
+    let zoom = 250.0;
 
     for i in 0..(1 << DIM) {
         for j in 0..DIM {
-            // Perspective project the vertex
-            // not Orthographically project the vertex
+            let denominator_1 = if perspective_project { z_depth - vertices[[2, i]] } else { 1.0 };
+            let denominator_2 = if perspective_project { z_depth - vertices[[2, i ^ (1 << j)]] } else { 1.0 };
 
-            let x_1 = map_range((vertices[[0, i]]*z_depth) / (z_depth - vertices[[2, i]]), -1.0, 1.0, -100.0, 100.0);
-            let x_2 = map_range((vertices[[0, i ^ (1 << j)]]*z_depth) / (z_depth - vertices[[2, i ^(1 << j)]]), -1.0, 1.0, -100.0, 100.0);
+            let x_1 = map_range((vertices[[0, i]]*z_depth) / denominator_1, -1.0, 1.0, -zoom, zoom);
+            let x_2 = map_range((vertices[[0, i ^ (1 << j)]]*z_depth) / denominator_2, -1.0, 1.0, -zoom, zoom);
 
-            let y_1 = map_range((vertices[[1, i]]*z_depth) / (z_depth - vertices[[2, i]]), -1.0, 1.0, -100.0, 100.0);
-            let y_2 = map_range((vertices[[1, i ^ (1 << j)]]*z_depth) / (z_depth - vertices[[2, i ^(1 << j)]]), -1.0, 1.0, -100.0, 100.0);
+            let y_1 = map_range((vertices[[1, i]]*z_depth) / denominator_1, -1.0, 1.0, -zoom, zoom);
+            let y_2 = map_range((vertices[[1, i ^ (1 << j)]]*z_depth) / denominator_2, -1.0, 1.0, -zoom, zoom);
+            
             draw.line()
                 .start(pt2(x_1, y_1))
                 .end(pt2(x_2, y_2))
