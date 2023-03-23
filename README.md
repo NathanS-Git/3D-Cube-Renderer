@@ -1,6 +1,7 @@
 # Hypercube renderer
 
 This renders an n-dimensional [hypercube](https://en.wikipedia.org/wiki/Hypercube) and rotates it about all of its planes of rotations.
+Written in Rust and is <100 lines of code.
 
 ## Examples
 
