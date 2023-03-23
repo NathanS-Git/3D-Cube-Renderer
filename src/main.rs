@@ -26,9 +26,7 @@ fn construct_rotation_matrix(axis_1: usize, axis_2: usize, angle: f32) -> Array2
     let mut rotation_matrix: Array2<f32> = Array2::zeros((DIM, DIM));
 
     for i in 0..DIM {
-        for j in 0..DIM {
-            rotation_matrix[[i,j]] = if i == j { 1.0 } else { 0.0 };
-        }
+        rotation_matrix[[i,i]] = 1.0;
     }
 
     // Make the rotation flip every other time
@@ -49,9 +47,7 @@ fn view(app: &App, frame: Frame) {
     // Initialize the rotation matrix to the identity matrix
     let mut rotation_matrix = Array2::zeros((DIM, DIM));
     for i in 0..DIM {
-        for j in 0..DIM {
-            rotation_matrix[[i,j]] = if i == j { 1.0 } else { 0.0 };
-        }
+        rotation_matrix[[i,i]] = 1.0;
     }
     
     let time = app.time*0.5;
